@@ -1,4 +1,4 @@
-import PyPDF2
+import pypdf2 as PyPDF2
 
 def extract_text_from_pdf(uploaded_file):
     text = ""
