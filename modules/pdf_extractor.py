@@ -1,10 +1,8 @@
-import fitz
+import pdfplumber
 
 def extract_text_from_pdf(uploaded_file):
     text = ""
-    pdf_bytes = uploaded_file.read()
-    doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-    for page in doc:
-        text += page.get_text()
-    doc.close()
+    with pdfplumber.open(uploaded_file) as pdf:
+        for page in pdf.pages:
+            text += page.extract_text() or ""
     return text.strip()
