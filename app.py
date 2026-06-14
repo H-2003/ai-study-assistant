@@ -2,6 +2,7 @@ import streamlit as st
 from modules.pdf_extractor import extract_text_from_pdf
 from modules.summarizer import generate_summary
 from modules.quiz_generator import generate_quiz
+from modules.chat_with_pdf import chat_with_pdf
 from utils.helpers import chunk_text
 import random
 import base64
@@ -94,6 +95,29 @@ st.markdown(f"""
         box-shadow: inset 0 0 30px rgba(0,0,0,0.3);
     }}
 
+    .chat-box {{
+        background: linear-gradient(135deg, #0a1f0a, #102010);
+        border: 1px solid #c9a227;
+        border-radius: 16px;
+        padding: 1.5rem;
+        color: #dff0d8;
+        line-height: 2;
+        font-size: 1.05rem;
+        margin-top: 1rem;
+    }}
+
+    .score-box {{
+        background: linear-gradient(135deg, #1a1a0a, #2a2a10);
+        border: 2px solid #c9a227;
+        border-radius: 16px;
+        padding: 1.5rem;
+        text-align: center;
+        color: #f5e6b0;
+        font-size: 1.5rem;
+        font-weight: 900;
+        margin: 1rem 0;
+    }}
+
     .stButton > button {{
         background: linear-gradient(135deg, #c9a227, #a07d1a) !important;
         color: #0a1a0a !important;
@@ -131,13 +155,6 @@ st.markdown(f"""
         border-bottom: 3px solid #c9a227 !important;
     }}
 
-    .stFileUploader {{
-        background: linear-gradient(135deg, #0f2010, #1a3a1a) !important;
-        border: 2px dashed #4a8a3a !important;
-        border-radius: 16px !important;
-        padding: 1.5rem !important;
-    }}
-
     .footer {{
         text-align: center;
         color: #4a7a3a;
@@ -168,7 +185,11 @@ funny_summary_done = [
 
 funny_quiz_done = "🎯 بكفيكم خمسة أسئلة... مثل عدد أسئلة الدكتور بلال بالامتحان! 😂"
 
-# Header
+if "score" not in st.session_state:
+    st.session_state.score = 0
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+
 st.markdown(f"""
 <div class="main-header">
     <img src="data:image/png;base64,{logo_base64}" alt="ZUST Logo"/>
@@ -177,14 +198,15 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# Welcome Banner
 st.markdown("""
 <div class="welcome-banner">
     🌿 ع قولة الدكتور بلال: يا هلااااااااا! أهلاً بك بمساعدك الذكي للدراسة 🌿
 </div>
 """, unsafe_allow_html=True)
 
-# Upload
+# Score
+st.markdown(f'<div class="score-box">🏆 نقاطك: {st.session_state.score}</div>', unsafe_allow_html=True)
+
 uploaded_file = st.file_uploader("📄 ارفع ملف PDF هون", type=["pdf"])
 
 if uploaded_file:
@@ -194,12 +216,13 @@ if uploaded_file:
 
     st.markdown('<div class="funny-box">📂 تم رفع الملف بنجاح! الروبوت جاهز يذاكر عنك 🤖</div>', unsafe_allow_html=True)
 
-    tab1, tab2 = st.tabs(["📝  Summary", "❓  Quiz"])
+    tab1, tab2, tab3 = st.tabs(["📝  Summary", "❓  Quiz", "💬  Chat with PDF"])
 
     with tab1:
         if st.button("✨  Generate Summary"):
             with st.spinner(random.choice(funny_loading)):
                 summary = generate_summary(text)
+            st.session_state.score += 10
             st.markdown(f'<div class="funny-box">{random.choice(funny_summary_done)}</div>', unsafe_allow_html=True)
             st.markdown(f'<div class="result-box">{summary}</div>', unsafe_allow_html=True)
 
@@ -207,7 +230,21 @@ if uploaded_file:
         if st.button("🎯  Generate Quiz"):
             with st.spinner(random.choice(funny_loading)):
                 quiz = generate_quiz(text)
+            st.session_state.score += 20
             st.markdown(f'<div class="funny-box">{funny_quiz_done}</div>', unsafe_allow_html=True)
             st.markdown(f'<div class="result-box">{quiz}</div>', unsafe_allow_html=True)
+
+    with tab3:
+        st.markdown("### 💬 اسأل أي سؤال عن الـ PDF")
+        question = st.text_input("اكتب سؤالك هون...")
+        if st.button("🔍  Get Answer"):
+            if question:
+                with st.spinner("🤔 بفكر..."):
+                    answer = chat_with_pdf(text, question)
+                st.session_state.score += 5
+                st.session_state.chat_history.append({"q": question, "a": answer})
+
+        for chat in reversed(st.session_state.chat_history):
+            st.markdown(f'<div class="chat-box">❓ <b>{chat["q"]}</b><br><br>💡 {chat["a"]}</div>', unsafe_allow_html=True)
 
 st.markdown('<div class="footer">🌿 جامعة الزيتونة للعلوم والتكنولوجيا | AI Study Assistant © 2026</div>', unsafe_allow_html=True)
