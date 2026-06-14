@@ -1,4 +1,4 @@
 streamlit
-pypdf2
+pypdf==3.17.4
 groq
 python-dotenv
