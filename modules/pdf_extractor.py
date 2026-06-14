@@ -1,8 +1,10 @@
-from pypdf import PdfReader
+import fitz
 
 def extract_text_from_pdf(uploaded_file):
     text = ""
-    reader = PdfReader(uploaded_file)
-    for page in reader.pages:
-        text += page.extract_text()
+    pdf_bytes = uploaded_file.read()
+    doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+    for page in doc:
+        text += page.get_text()
+    doc.close()
     return text.strip()
