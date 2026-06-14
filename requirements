@@ -1,4 +1,4 @@
 streamlit
-PyPDF2
+pypdf2
 groq
 python-dotenv
